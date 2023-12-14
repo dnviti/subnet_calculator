@@ -81,7 +81,8 @@ In VLSM, le sottoreti possono avere dimensioni diverse, ottimizzando l'allocazio
 ## Contribuire
 
 I contributi al progetto sono benvenuti! Si prega di aprire una pull request o un issue per suggerimenti o miglioramenti.
+[CONTRIBUTING](CONTRIBUTING.md)
 
 ## Licenza
 
-[Inserire la licenza qui]
+[MIT License](LICENSE.md)
