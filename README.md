@@ -16,10 +16,10 @@ Questo script Python fornisce una soluzione per il calcolo delle sottoreti IP ut
 
 Per utilizzare lo script, è necessario specificare l'indirizzo IP di base, il numero di host richiesti per ogni sottorete e il numero di sottoreti. Lo script può essere eseguito direttamente da linea di comando.
 
-## Esempio di Comando
+## Esempio di Comando per FLSM
 
 ```bash
-python main.py --ip 192.168.0.0 --hosts 30 50 --subnets 2
+python main.py --ip 192.168.0.0 --hosts 40 --subnets 4
 ```
 
 ### Esempio di Config per FLSM
@@ -40,13 +40,13 @@ python main.py --ip 192.168.0.0 --hosts 30 50 --subnets 2
 }
 ```
 
-Se nel JSON viene inserito il parametro `"subnet": n`, il sistema mostrerà i risultati per soltanto le prime n subnet.
+Se nel JSON viene inserito il parametro `"subnets": n`, il sistema mostrerà i risultati per soltanto le prime n subnet.
 
 ```json
 {
     "ip": "192.168.0.0",
     "hosts": 40,
-    "subnet": 4
+    "subnets": 4
 }
 ```
 
