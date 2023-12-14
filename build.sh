@@ -1,0 +1,1 @@
+pyinstaller --onefile main.py -n subnet_calculator
