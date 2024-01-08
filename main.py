@@ -1,3 +1,4 @@
+import os
 import argparse
 import json
 
@@ -82,7 +83,7 @@ def calculate_subnets(args, output_file):
             if base_ip[3] == 0:
                 break
 
-    return subnet_type
+    return [subnet_type, subnet_count]
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
@@ -112,35 +113,50 @@ if __name__ == "__main__":
         "--output", type=str, help="Percorso del file di output (opzionale)."
     )
 
-    args = parser.parse_args(args=[])
+    args = parser.parse_args()
 
     # Carica la configurazione dal file JSON
-    if args.config:
+    if os.path.isfile(args.config):
         try:
             with open(args.config, "r") as config_file:
                 config = json.load(config_file)
-                args.ip = config.get("ip", args.ip)
-                args.hosts = config.get("hosts", args.hosts)
-                args.subnets = config.get("subnets", args.subnets)
+                if args.ip is None:
+                    args.ip = config.get("ip")
+
+                if args.hosts is None:
+                    args.hosts = config.get("hosts")
+
+                if args.subnets is None:
+                    args.subnets = config.get("subnets")
         except FileNotFoundError:
             print(
                 f"File di configurazione {args.config} non trovato. Utilizzo valori di default."
             )
+    
+    if args.ip is None:
+        args.ip = "192.168.0.0"
+    if args.hosts is None:
+        args.hosts = 254
 
     # Imposta il nome del file di output basato sull'indirizzo IP, se non specificato
     output_filename = (
         args.output if args.output else f"{args.ip.replace('.', '_')}_output.txt"
     )
     output_file = open(output_filename, "w")
-
+    
     info = (
         f"\nIndirizzo IP di base: {args.ip}\n"
         f"Numero di hosts richiesto: {args.hosts}\n"
-        f"Numero di sottoreti: {args.subnets}\n"
     )
+    if args.subnets is not None:
+        info += f"Numero di sottoreti visualizzate: {args.subnets}\n"
     print(info, file=output_file)
 
-    subnet_type = calculate_subnets(args, output_file)
-    print(f"\nApproccio utilizzato: {subnet_type}", file=output_file)
+    calculated_subnets = calculate_subnets(args, output_file)
+    subnet_type = calculated_subnets[0]
+    subnet_count = calculated_subnets[1]
+    
+    print(f"\nApproccio Utilizzato: {subnet_type}", file=output_file)
+    print(f"Sottoreti Generate: {subnet_count}", file=output_file)
 
     output_file.close()
