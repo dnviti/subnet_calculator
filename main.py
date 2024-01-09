@@ -55,7 +55,12 @@ def calculate_subnet(base_ip, host_bits, subnet_number, output_file):
     return broadcast
 
 def calculate_subnets(args, output_file):
-    base_ip = list(map(int, args.ip.split(".")))
+    base_ip, host_bits = parse_cidr(args.cidr) if args.cidr else (list(map(int, args.ip.split("."))), 0)
+    
+    if not args.cidr:
+        while (2**host_bits) < (args.hosts + 2):
+            host_bits += 1
+
     subnet_type = "FLSM"  # Default a FLSM
     subnet_count = 0
 
@@ -85,12 +90,20 @@ def calculate_subnets(args, output_file):
 
     return [subnet_type, subnet_count]
 
+def parse_cidr(cidr):
+    ip_str, mask_str = cidr.split('/')
+    ip = list(map(int, ip_str.split(".")))
+    host_bits = 32 - int(mask_str)
+    return ip, host_bits
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         description="Calcola sottoreti usando FLSM o VLSM."
     )
     parser.add_argument(
-        "--ip", type=str, help="Indirizzo IP di base della rete."
+        "--cidr",
+        type=str,
+        help="CIDR della sottorete (es. 192.168.1.0/24)."
     )
     parser.add_argument(
         "--hosts",
@@ -120,8 +133,8 @@ if __name__ == "__main__":
         try:
             with open(args.config, "r") as config_file:
                 config = json.load(config_file)
-                if args.ip is None:
-                    args.ip = config.get("ip")
+                if args.cidr is None:
+                    args.cidr = config.get("cidr")
 
                 if args.hosts is None:
                     args.hosts = config.get("hosts")
@@ -133,19 +146,22 @@ if __name__ == "__main__":
                 f"File di configurazione {args.config} non trovato. Utilizzo valori di default."
             )
     
-    if args.ip is None:
-        args.ip = "192.168.0.0"
+    if args.cidr:
+        base_ip, host_bits = parse_cidr(args.cidr)
+    else:
+        base_ip = list(map(int, args.cidr.split("."))) if args.cidr else [192, 168, 0, 0]
+        host_bits = 32 - 24  # Default subnet mask /24 if not provided
     if args.hosts is None:
         args.hosts = 254
 
     # Imposta il nome del file di output basato sull'indirizzo IP, se non specificato
     output_filename = (
-        args.output if args.output else f"{args.ip.replace('.', '_')}_output.txt"
+        args.output if args.output else f"{args.cidr.replace('.', '_').replace('/', '_')}_output.txt"
     )
     output_file = open(output_filename, "w")
     
     info = (
-        f"\nIndirizzo IP di base: {args.ip}\n"
+        f"\nIndirizzo IP di base: {args.cidr}\n"
         f"Numero di hosts richiesto: {args.hosts}\n"
     )
     if args.subnets is not None:
